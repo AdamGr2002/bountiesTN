@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { UserButton } from '@clerk/nextjs'
 import { GlobeIcon, TrendingUpIcon, ShieldIcon } from 'lucide-react'
+import { SignInButton } from '../components/SignInButton'
 
 export default function Home() {
   return (
@@ -14,6 +15,7 @@ export default function Home() {
             <span className="text-2xl font-bold text-primary">BountyBoard</span>
           </Link>
           <div className="flex items-center space-x-4">
+            <SignInButton />
             <Button asChild variant="outline">
               <Link href="/create">Post a Bounty</Link>
             </Button>

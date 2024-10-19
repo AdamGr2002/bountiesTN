@@ -43,7 +43,7 @@ export default function CreateBountyForm() {
         poster: {
           id: user.id,
           name: user.fullName || "",
-          avatar: user.profileImageUrl,
+          avatar: user.imageUrl,
         },
       })
       router.push('/')

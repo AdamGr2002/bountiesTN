@@ -9,9 +9,11 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { DollarSign, Clock, Tag, Zap } from "lucide-react"
 import Link from "next/link"
+import { useUser } from "@clerk/nextjs";
 
 export default function BountyList() {
   const bounties = useQuery(api.bounties.list);
+  const { isSignedIn } = useUser();
 
   if (bounties === undefined) {
     return (
@@ -62,12 +64,14 @@ export default function BountyList() {
                 <span className="text-sm font-medium">{bounty.poster.name}</span>
               </div>
               <Button asChild size="sm">
-                <Link href={`/bounty/${bounty._id}`}>View Details</Link>
+                <Link href={`/bounty/${bounty._id}`}>
+                  {isSignedIn ? "Solve Bounty" : "View Details"}
+                </Link>
               </Button>
             </CardFooter>
           </Card>
         ))}
       </div>
     </div>
-  )
+  );
 }

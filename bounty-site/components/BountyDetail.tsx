@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client"
 
@@ -11,8 +12,9 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Textarea } from "@/components/ui/textarea"
 import { DollarSign, Clock, Tag, User, CheckCircle, XCircle } from "lucide-react"
+import { Id } from "../convex/_generated/dataModel"
 
-export default function BountyDetail({ id }: { id: string }) {
+export default function BountyDetail({ id }: { id: Id<"bounties"> }) {
   const bounty = useQuery(api.bounties.get, { id })
   const solutions = useQuery(api.bounties.getSolutions, { bountyId: id })
   const [solution, setSolution] = useState("")
@@ -39,7 +41,7 @@ export default function BountyDetail({ id }: { id: string }) {
         submitter: {
           id: user.id,
           name: user.fullName || "",
-          avatar: user.profileImageUrl,
+          avatar: user.imageUrl || ""
         },
       })
       setSolution("")
@@ -52,15 +54,14 @@ export default function BountyDetail({ id }: { id: string }) {
 
   const handleMarkAsCompleted = async () => {
     try {
-      await updateStatus({ id, status: 'closed' 
-      })
+      await updateStatus({ id, status: 'closed' })
     } catch (error) {
       console.error("Failed to mark bounty as completed:", error)
       alert("Failed to mark bounty as completed")
     }
   }
 
-  const handleSelectWinner = async (solutionId: string) => {
+  const handleSelectWinner = async (solutionId: Id<"solutions">) => {
     try {
       await setWinningSolution({ bountyId: id, solutionId })
     } catch (error) {
