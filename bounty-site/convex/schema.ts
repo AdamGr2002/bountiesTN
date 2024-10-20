@@ -14,6 +14,8 @@ export default defineSchema({
       avatar: v.string(),
     }),
     status: v.string(),
+    communicationMethod: v.string(),
+    communicationValue: v.string(),
     winningSolution: v.optional(
       v.object({
         id: v.string(),

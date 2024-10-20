@@ -30,12 +30,12 @@ export const create = mutation({
       name: v.string(),
       avatar: v.string(),
     }),
+    communicationMethod: v.string(),
+    communicationValue: v.string(),
+    status: v.string(),
   },
   handler: async (ctx, args) => {
-    const bountyId = await ctx.db.insert("bounties", {
-      ...args,
-      status: "open",
-    });
+    const bountyId = await ctx.db.insert("bounties", args);
     return bountyId;
   },
 });

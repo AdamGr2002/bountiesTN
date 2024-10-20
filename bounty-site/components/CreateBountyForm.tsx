@@ -1,9 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
@@ -11,9 +10,10 @@ import { useUser } from "@clerk/nextjs"
 import { useMutation } from "convex/react"
 import { api } from "../convex/_generated/api"
 import { DollarSign, Calendar, Tags } from "lucide-react"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { createPayment } from "@/lib/flouciApi"
 
 export default function CreateBountyForm() {
-  const router = useRouter()
   const { user } = useUser()
   const createBounty = useMutation(api.bounties.create)
   const [formData, setFormData] = useState({
@@ -22,11 +22,17 @@ export default function CreateBountyForm() {
     amount: "",
     deadline: "",
     tags: "",
+    communicationMethod: "discord",
+    communicationValue: "",
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleCommunicationMethodChange = (value: string) => {
+    setFormData((prev) => ({ ...prev, communicationMethod: value }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,7 +42,8 @@ export default function CreateBountyForm() {
       return
     }
     try {
-      await createBounty({
+      // First, create the bounty
+      const bountyId = await createBounty({
         ...formData,
         amount: parseFloat(formData.amount),
         tags: formData.tags.split(',').map(tag => tag.trim()),
@@ -45,11 +52,19 @@ export default function CreateBountyForm() {
           name: user.fullName || "",
           avatar: user.imageUrl,
         },
+        communicationMethod: formData.communicationMethod,
+        communicationValue: formData.communicationValue,
+        status: 'pending_payment',
       })
-      router.push('/')
+
+      // Then, create a payment
+      const payment = await createPayment(parseFloat(formData.amount) * 100, bountyId)
+
+      // Redirect to Flouci payment page
+      window.location.href = payment.payment_url
     } catch (error) {
-      console.error("Failed to create bounty:", error)
-      alert("Failed to create bounty")
+      console.error("Failed to create bounty or initiate payment:", error)
+      alert("Failed to create bounty or initiate payment")
     }
   }
 
@@ -57,6 +72,7 @@ export default function CreateBountyForm() {
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
         <CardTitle className="text-2xl font-bold text-center">Create a New Bounty</CardTitle>
+        <CardDescription>Fill out the details for your bounty</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -131,6 +147,38 @@ export default function CreateBountyForm() {
                 placeholder="e.g. React, Performance, Security (comma-separated)"
               />
             </div>
+          </div>
+          <div>
+            <Label htmlFor="communicationMethod" className="text-lg font-medium">Communication Method</Label>
+            <RadioGroup
+              name="communicationMethod"
+              value={formData.communicationMethod}
+              onValueChange={handleCommunicationMethodChange}
+              className="flex space-x-4 mt-2"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="discord" id="discord" />
+                <Label htmlFor="discord">Discord</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="email" id="email" />
+                <Label htmlFor="email">Email</Label>
+              </div>
+            </RadioGroup>
+          </div>
+          <div>
+            <Label htmlFor="communicationValue" className="text-lg font-medium">
+              {formData.communicationMethod === 'discord' ? 'Discord Username' : 'Email Address'}
+            </Label>
+            <Input
+              id="communicationValue"
+              name="communicationValue"
+              value={formData.communicationValue}
+              onChange={handleChange}
+              required
+              className="mt-1"
+              placeholder={formData.communicationMethod === 'discord' ? 'Your Discord username' : 'Your email address'}
+            />
           </div>
         </form>
       </CardContent>

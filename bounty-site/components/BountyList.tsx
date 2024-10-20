@@ -10,10 +10,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { DollarSign, Clock, Tag, Zap } from "lucide-react"
 import Link from "next/link"
 import { useUser } from "@clerk/nextjs";
+import { useState } from "react";
 
 export default function BountyList() {
   const bounties = useQuery(api.bounties.list);
   const { isSignedIn } = useUser();
+  const [filter, setFilter] = useState<'all' | 'open' | 'closed'>('all');
 
   if (bounties === undefined) {
     return (
@@ -23,11 +25,38 @@ export default function BountyList() {
     );
   }
 
+  const filteredBounties = bounties.filter(bounty => {
+    if (filter === 'all') return true;
+    return bounty.status === filter;
+  });
+
   return (
     <div>
-      <h2 className="text-3xl font-bold mb-6">Active Bounties</h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-3xl font-bold">All Bounties</h2>
+        <div className="space-x-2">
+          <Button
+            variant={filter === 'all' ? 'default' : 'outline'}
+            onClick={() => setFilter('all')}
+          >
+            All
+          </Button>
+          <Button
+            variant={filter === 'open' ? 'default' : 'outline'}
+            onClick={() => setFilter('open')}
+          >
+            Open
+          </Button>
+          <Button
+            variant={filter === 'closed' ? 'default' : 'outline'}
+            onClick={() => setFilter('closed')}
+          >
+            Closed
+          </Button>
+        </div>
+      </div>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {bounties.map((bounty) => (
+        {filteredBounties.map((bounty) => (
           <Card key={bounty._id} className="flex flex-col overflow-hidden transition-shadow hover:shadow-lg">
             <CardHeader className="pb-4">
               <div className="flex justify-between items-start">
